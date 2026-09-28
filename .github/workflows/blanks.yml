@@ -1,28 +1,67 @@
-name: CI
+name: CI/CD Pipeline
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
   pull_request:
-    branches: ["main"]
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
-  build:
+  ci:
+    name: Continuous Integration
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Check repository files
+      - name: Validate repository
         run: |
-          echo "CI workflow is running"
-          echo "Repository files:"
-          ls -la
-
-      - name: Test files
-        run: |
+          echo "Validating repository..."
           test -f file1.txt
           test -f file2.txt
-          echo "All required files exist"
+          echo "Validation successful"
+
+      - name: Run tests
+        run: |
+          echo "Running tests..."
+          test -f file1.txt
+          test -f file2.txt
+          echo "Tests passed"
+
+      - name: Build
+        run: |
+          echo "Building project..."
+          mkdir -p build
+          cp file1.txt build/
+          cp file2.txt build/
+          echo "Build completed"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: application-build
+          path: build/
+
+  cd:
+    name: Continuous Deployment
+    needs: ci
+    runs-on: ubuntu-latest
+
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: application-build
+          path: deploy/
+
+      - name: Deploy
+        run: |
+          echo "Deploying application..."
+          ls -la deploy/
+          echo "Deployment successful"
