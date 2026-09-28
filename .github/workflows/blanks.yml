@@ -24,5 +24,5 @@ jobs:
       - name: Test files
         run: |
           test -f file1.txt
-          test -f file3.txt
+          test -f file2.txt
           echo "All required files exist"
